@@ -91,31 +91,47 @@ def get_args():
     return arg_dict
 
 
-def print_table(bits):
+def print_table(bit_value, type_index):
     table_values = []
-    bar = "--------------------------------------"
 
-    print(bar)
-    print(bcolors.WARNING + bcolors.BOLD + bcolors.UNDERLINE + "Type" + bcolors.ENDC + bcolors.BOLD + "\t\t" + bcolors.WARNING +
-        bcolors.UNDERLINE + "Value" + bcolors.ENDC)
-    print(bar)
-    for i,unit in enumerate(units):
-        j = i - 2
+    header = (" {c}Unit Type\t\tValue{endc}".format(
+            c=bcolors.WARNING + bcolors.BOLD + bcolors.UNDERLINE,
+            endc=bcolors.ENDC,
+            )
+        )
+    print(header)
 
-        if i == 0:
-            table_values.append(bits);
-        elif i == 1:
-            table_values.append(bits / mod_d)
+    max_range = type_index + 3 if type_index % 2 == 0 else type_index + 2
+
+    table_range = range(0, max_range)
+
+    for idx,unit in enumerate(units):
+        j = idx - 2
+
+        if idx == 0:
+            table_values.append(bit_value);
+        elif idx == 1:
+            table_values.append(bit_value / mod_d)
         else:
             table_values.append(table_values[j] / mod_s)
         
         #prettyVal = "{:f}".format(table_values[i]).rstrip(".0") # format float, drop empty 0s from decimal value
 
-        #print(bar)
-        print(bcolors.OKGREEN + unit + "s:    \t" + bcolors.ENDC + bcolors.BOLD + str(table_values[i]) +
-            bcolors.ENDC)
+        unit_long = unit.title()
+        unit_short = " " + units_s[idx] if len(units_s[idx]) == 1 else units_s[idx]
+
+        value_str = (" {c}{short} - {unit}s\t{endc}\t{val}".format(
+                c=bcolors.OKGREEN,
+                endc=bcolors.ENDC,
+                unit=unit_long,
+                short=unit_short,
+                val=table_values[idx]
+                )
+            )
         
-    print(bar)
+        print(value_str)
+        
+    print()
 
 def usage():
     print("-t for type, -b for value")
@@ -144,12 +160,13 @@ def main():
 
     input_value = arg_dict['input_value']
     input_type = unit_table[arg_dict['input_type']]
+    input_type_index = units.index(input_type)
 
     # Convert input value to bits
     bit_value = convert_to_bits(input_type, input_value)
 
     # Print conversion table
-    print_table(bit_value)
+    print_table(bit_value, input_type_index)
 
 
 if __name__ == "__main__":

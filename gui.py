@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Based on http://www.matisse.net/bitcalc/
 import tkinter
 
 def stop_prog(e):
@@ -11,3 +12,8 @@ button1.pack()
 button1.bind('<Button-1>', stop_prog)
 
 root.mainloop()
+
+# Field - Amount
+# Drop down menu - Units
+# Button - Show Conversion Table
+
