@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import getopt, math, os, sys, decimal
+import sys
+from getopt import getopt, GetoptError
 
 # Lists of prefixes (long and short)
 prefixes = ["kilo", "mega", "giga", "tera", "peta"]
@@ -32,45 +33,43 @@ mod_s = 1024
 # Modify Disparate - Number of bits in a byte
 mod_d = 8
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
 def convert_to_bits(input_type, input_value):
+    # Check if value is a bit or byte value
     is_bit = True if units[0] in input_type else False
-    
+
+    # If value is byte, convert to bit
+    if not is_bit:
+        input_value *= mod_d
+
+    # Check prefix and convert to bits accordingly    
     for prefix in prefixes:
+        # Do nothing unless prefix is found in input_type string
         if prefix in input_type:
+            # Convert from kilo
             if prefix == prefixes[0]:
                 input_value *= mod_s
+            # Convert from mega
             elif prefix == prefixes[1]:
-                input_value *= math.pow(mod_s, 2)
+                input_value *= pow(mod_s, 2)
+            # Convert from giga
             elif prefix == prefixes[2]:
-                input_value *= math.pow(mod_s, 3)
+                input_value *= pow(mod_s, 3)
+            # Convert from tera
             elif prefix == prefixes[3]:
-                input_value *= math.pow(mod_s, 4)
+                input_value *= pow(mod_s, 4)
+            # Convert from peta
             elif prefix == prefixes[4]:
-                input_value *= math.pow(mod_s, 5)
-    
-    if not is_bit:
-        input_value *= mod_d    
+                input_value *= pow(mod_s, 5)
 
     return input_value
-   
+
 
 def get_args():
     argv = sys.argv[1:]
 
     try:
-        opts, args = getopt.getopt(argv, "b:ht:", ["help", "type="])
-    except getopt.GetoptError:
+        opts, args = getopt(argv, "b:ht:", ["help", "type="])
+    except GetoptError:
         usage()
 
     arg_dict = {}
@@ -93,43 +92,35 @@ def get_args():
 
 def print_table(bit_value, type_index):
     table_values = []
-
-    header = (" {c}Unit Type\t\tValue{endc}".format(
-            c=bcolors.WARNING + bcolors.BOLD + bcolors.UNDERLINE,
-            endc=bcolors.ENDC,
-            )
-        )
+    
+    # Define and print header string
+    header = " Unit Type\t\tValue"
     print(header)
 
-    max_range = type_index + 3 if type_index % 2 == 0 else type_index + 2
-
-    table_range = range(0, max_range)
-
     for idx,unit in enumerate(units):
-        j = idx - 2
-
         if idx == 0:
+            # Append base bit value to table_values list
             table_values.append(bit_value);
         elif idx == 1:
+            # Append base byte value to table_values list
             table_values.append(bit_value / mod_d)
         else:
-            table_values.append(table_values[j] / mod_s)
+            # Modify value for previous like type (bit/byte), append to list
+            table_values.append(table_values[idx - 2] / mod_s)
         
-        #prettyVal = "{:f}".format(table_values[i]).rstrip(".0") # format float, drop empty 0s from decimal value
-
+        # Format float value as 15 point decimal, drop 0s after decimal
+        pretty_val = "{:0.15f}".format(table_values[idx]).rstrip("0").rstrip(".")
+        
+        # Set unit labes for long and short labels
         unit_long = unit.title()
         unit_short = " " + units_s[idx] if len(units_s[idx]) == 1 else units_s[idx]
 
-        value_str = (" {c}{short} - {unit}s\t{endc}\t{val}".format(
-                c=bcolors.OKGREEN,
-                endc=bcolors.ENDC,
-                unit=unit_long,
-                short=unit_short,
-                val=table_values[idx]
+        # Define and print output string
+        output_str = (" {short} - {unit}s\t\t{val}".format(
+                unit=unit_long, short=unit_short, val=pretty_val
                 )
             )
-        
-        print(value_str)
+        print(output_str)
         
     print()
 
