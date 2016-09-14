@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-''' Python Bit Calculator (bitcalc.py)
+''' Python Bit Calculator (pybitcalc)
 Inspired by Matisse's Bit Calculator - http://www.matisse.net/bitcalc
 Units conform to Ubuntu Units Policy - https://wiki.ubuntu.com/UnitsPolicy
+
+License: MIT License, Copyright (c) 2016 Marcus Bowman
+Version: 1.0
 '''
 import sys
 from getopt import getopt, GetoptError
@@ -175,12 +178,31 @@ def print_table(bit_value):
                 )
             )
         print(output_str)
-        
-    print()
+
 
 def usage():
     """ Print usage information to console """
-    print("-t for type, -b for value")
+    usage_str = (
+        "SYNOPSIS\n\tpython bitcalc.py [-a amount] [-t type] [-b base]\n\n"
+        "DESCRIPTION\n\tA simple python2/3 program for printing a conversion "
+        "table of different byte values to console.\n\n"
+        "COMMAND LINE OPTIONS\n\t-a float, --amount float\n\t\tSpecify amount "
+        "bits/bytes\n\n\t-b int, --base int\n\t\tSpecify which base notation "
+        "to use (only affects -t b and B).\n\n\t\tVALID OPTIONS\n\t\t2 - 1024 "
+        "bytes in kilobyte/base-2/IEC Notation (default)\n\t\t10 - 1000 bytes"
+        "in kilobyte/base-10/SI Notation\n\n\t-h, --help\n\t\tPrint usage "
+        "information (this menu)\n\n\t-t string, --type string\n\t\tSpecify "
+        "type of amount\n\n\t\tVALID OPTIONS\n\t\tFlexible - b, B (default "
+        "base-2)\n\t\tbase-2 - Kib, KiB, Mib, MiB, Gib, GiB, Tib, TiB, Pib, "
+        "PiB\n\t\tbase-10 - kb, kB, Mb, MB, Gb, GB, Tb, TB, Pb, PB\n\nEXAMPLES"
+        "\n\t$ ./bitcalc.py -a 1024 -t B\n\t\tReturns conversion table of "
+        "1024 Bytes (base-2)\n\n\t$ ./bitcalc.py -a 1000 -t B -b 10\n\t\t"
+        "Returns conversion table of 1000 Bytes (base-10)\n\n\t$ ./bitcalc.py "
+        "-a 53.7 -t GiB\n\t\tReturns conversion table of 53.7 Gibibytes "
+        "(base-2)\n\n\t$ ./bitcalc.py -a 53.7 -t GB\n\t\tReturns conversion "
+        "table of 53.7 Gigabytes (base-10)"
+        )
+    print(usage_str)
     sys.exit(2)
 
 
@@ -224,7 +246,7 @@ def validate_args(arg_dict):
     else:
         # Check input_type, if bit/byte, notify user binary/base-2 will be used 
         if input_type == 'bit' or input_type == 'byte':
-            usage_str = ('{0}s selected, no base specified, using binary mode (base-2).'
+            usage_str = ('{0}s selected, no base specified, using base-2.'
                 '\nRun again and specify -b 10 or --base 10 for base-10.\n'
                 ''.format(input_type.title()))
             print(usage_str)
