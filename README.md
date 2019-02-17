@@ -7,7 +7,7 @@
 ```
 usage: bitcalc.py [-h] [-b BASE] amount type
 
-A simple program for printing a conversion table of byte values for a given input value
+A simple program for printing a conversion table of bit and byte values for a given input value
 
 positional arguments:
   amount                specify bit/byte amount
