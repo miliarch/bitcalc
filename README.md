@@ -112,8 +112,9 @@ Input value: 53.7 GB
 ```
 
 ## Version History / Change Log
-02/16/2019 - v1.1 - Refactoring and general improvements
-09/14/2016 - v1.0 - First functional release
+
+* 02/16/2019 - v1.1 - Refactoring and general improvements
+* 09/14/2016 - v1.0 - First functional release
 
 ## About
 This is a little project that's been in the works for a while. Frequently dealing with storage/filesystem management, I found that I'd often need to convert between different bit and byte values. Most of the time, I'd just head over to [Matisse's Bit Calculator](http://www.matisse.net/bitcalc/), as it suited my needs perfectly. Over time, this became a bit cumbersome for my needs (connect to internet, launch browser, visit site), and I sought to find a locally executable equivalent. **I didn't find one, so I built one!**
