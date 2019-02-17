@@ -137,7 +137,7 @@ def parse_args():
 
     # Set and define description
     desc = 'A simple program for printing a conversion '
-    desc += 'table of byte values for a given input value'
+    desc += 'table of bit and byte values for a given input value'
     parser = Parser(description=desc, formatter_class=RawTextHelpFormatter)
 
     help_str = 'specify bit/byte amount'
