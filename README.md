@@ -11,14 +11,16 @@ A simple program for printing a conversion table of bit and byte values for a gi
 
 positional arguments:
   amount                specify bit/byte amount
-  type                  specify bit/byte type as short unit label - valid options:
+  type                  specify bit/byte type as short unit label
+                         options:
                           ambiguous: [b|B] (handled as base-2 by default)
                           base-2: [Kib|KiB|Mib|MiB|Gib|GiB|Tib|TiB|Pib|PiB]
                           base-10: [kb|kB|Mb|MB|Gb|GB|Tb|TB|Pb|PB]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -b BASE, --base BASE  specify base for ambiguous unit labels - valid options: [2|10]
+  -b BASE, --base BASE  specify base for ambiguous unit labels
+                         options: [2|10]
 ```
 
 For more information about IEC and SI notation, see [Ubuntu Units Policy](https://wiki.ubuntu.com/UnitsPolicy).

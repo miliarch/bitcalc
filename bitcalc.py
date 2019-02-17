@@ -143,16 +143,16 @@ def parse_args():
     help_str = 'specify bit/byte amount'
     parser.add_argument('amount', help=help_str)
 
-    help_str = 'specify bit/byte type as short unit label - valid options:'
+    help_str = 'specify bit/byte type as short unit label'
+    help_str += '\n options:'
     help_str += '\n  ambiguous: [{}] (handled as base-2 by default)'.format(
         '|'.join(b2_units_s[:2]))
     help_str += '\n  base-2: [{}]'.format('|'.join(b2_units_s[2:]))
     help_str += '\n  base-10: [{}]'.format('|'.join(b10_units_s[2:]))
-    help_str += '\n'
     parser.add_argument('type', help=help_str)
 
-    help_str = 'specify base for ambiguous unit labels - valid options: [2|10]'
-    help_str += ''
+    help_str = 'specify base for ambiguous unit labels'
+    help_str += '\n options: [2|10]'
     parser.add_argument('-b', '--base', help=help_str)
 
     return parser.parse_args()
