@@ -158,6 +158,15 @@ def parse_args():
     return parser.parse_args()
 
 
+def format_number(value):
+    if value > 1:
+        # Format as 3 point decimal for smaller amounts
+        return "{:0.3f}".format(value).rstrip("0").rstrip(".")
+    else:
+        # Format as 15 point decimal for smaller amounts
+        return "{:0.15f}".format(value).rstrip("0").rstrip(".")
+
+
 def print_table(bit_value):
     """ Print conversion table based on bit_value to console """
     table_values = []
@@ -182,14 +191,7 @@ def print_table(bit_value):
             # Modify value for previous like type (bit/byte), append to list
             table_values.append(table_values[idx - 2] / mod_s)
 
-        if table_values[idx] > 1:
-            # Format float as 3 point decimal for larger amounts
-            pretty_val = "{:0.3f}".format(
-                table_values[idx]).rstrip("0").rstrip(".")
-        else:
-            # Format float as 15 point decimal for smaller amounts
-            pretty_val = "{:0.15f}".format(
-                table_values[idx]).rstrip("0").rstrip(".")
+        pretty_val = format_number(table_values[idx])
 
         # Set unit labels for long and short labels
         unit_long = unit.title()
