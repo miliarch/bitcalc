@@ -71,14 +71,14 @@ class Unit:
             value *= 8
 
         prefix_to_power = {
-            'kibi': 1, 'kilo': 1,
-            'mebi': 2, 'mega': 2,
-            'gibi': 3, 'giga': 3,
-            'tebi': 4, 'tera': 4,
-            'pebi': 5, 'peta': 5
+            'ki': 1,
+            'me': 2,
+            'gi': 3,
+            'te': 4,
+            'pe': 5
         }
 
-        return int(value * pow(k_divisor, prefix_to_power[prefix]))
+        return int(value * pow(k_divisor, prefix_to_power[prefix[:2]]))
 
     @staticmethod
     def _get_prefix(label):
