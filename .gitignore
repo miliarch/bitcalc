@@ -1,0 +1,4 @@
+__pycache__*
+*.sublime*
+venv*
+.DS_Store

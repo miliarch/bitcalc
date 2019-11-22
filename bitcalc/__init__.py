@@ -1,0 +1,1 @@
+from bitcalc.interface import main
