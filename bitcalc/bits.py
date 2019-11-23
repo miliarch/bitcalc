@@ -30,15 +30,14 @@ LABEL_MAP = {
     }
 }
 
-
-def convert_bytes_to_bits(byte_value):
-    """ Convert input bytes to bits """
-    return byte_value * 8
-
-
-def convert_bits_to_bytes(bit_value):
-    """ Convert input bits to bytes """
-    return bit_value / 8
+PREFIX_TO_POWER = {
+    'b': 0,
+    'k': 1,
+    'm': 2,
+    'g': 3,
+    't': 4,
+    'p': 5
+}
 
 
 class Unit:
@@ -52,33 +51,24 @@ class Unit:
     def __init__(self):
         self.prefix = self._get_prefix(self.label)
         self.suffix = self._get_suffix(self.label)
-        self.bits = self._get_bit_value(
-            self.value,
-            self.prefix,
-            self.suffix,
-            self.k_divisor)
+        self.is_bit = self.is_bit(self.label_short)
+        self.bits = self._get_bit_value()
+        self.bytes = self.bits_to_bytes(self.bits)
 
-    @staticmethod
-    def _get_bit_value(value, prefix, suffix, k_divisor):
-        if prefix is None and suffix == 'bit':
+    def _get_bit_value(self):
+        if self.prefix is None and self.is_bit:
             # Value is bits already
-            return value
-        elif prefix is None and suffix == 'byte':
+            return self.value
+        elif self.prefix is None and not self.is_bit:
             # Value is bytes
-            return value * 8
-        elif suffix == 'byte':
-            # Value is bytes, but not plain; convert to bit for processing
-            value *= 8
-
-        prefix_to_power = {
-            'ki': 1,
-            'me': 2,
-            'gi': 3,
-            'te': 4,
-            'pe': 5
-        }
-
-        return int(value * pow(k_divisor, prefix_to_power[prefix[:2]]))
+            return Unit.bytes_to_bits(self.value)
+        elif not self.is_bit:
+            # Value is bytes, but not plain; convert to bits and save
+            value = Unit.bytes_to_bits(self.value)
+        else:
+            # value is bits, set it and move on
+            value = self.value
+        return Unit.prefix_to_value(value, self.prefix, self.k_divisor)
 
     @staticmethod
     def _get_prefix(label):
@@ -90,6 +80,26 @@ class Unit:
     @staticmethod
     def _get_suffix(label):
         return label[label.rfind('b'):]
+
+    @staticmethod
+    def value_to_prefix(value, prefix, k_divisor):
+        return value / pow(k_divisor, PREFIX_TO_POWER[prefix[0]])
+
+    @staticmethod
+    def prefix_to_value(value, prefix, k_divisor):
+        return value * pow(k_divisor, PREFIX_TO_POWER[prefix[0]])
+
+    @staticmethod
+    def bits_to_bytes(value):
+        return value / 8
+
+    @staticmethod
+    def bytes_to_bits(value):
+        return value * 8
+
+    @staticmethod
+    def is_bit(label_short):
+        return True if label_short[-1] == 'b' else False
 
 
 class UnitBase2(Unit):

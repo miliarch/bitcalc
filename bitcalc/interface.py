@@ -1,6 +1,6 @@
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
-from .bits import LABEL_MAP, UnitBase2, UnitBase10
+from .bits import LABEL_MAP, UnitBase2, UnitBase10, Unit
 
 LABELS_B2 = list(LABEL_MAP['base-2'].keys())
 LABELS_B10 = list(LABEL_MAP['base-10'].keys())
@@ -23,17 +23,24 @@ def parse_args():
     parser.add_argument('count', help=help_str)
 
     help_str = 'specify short unit label'
+    parser.add_argument('label', help=help_str)
+
+    help_str = 'specify target short unit label to convert to'
+    help_str += '\n\n short unit labels:'
     help_str += '\n  ambiguous: [{}] (handled as base-2 by default)'.format(
         '|'.join(LABELS_B2[:2]))
     help_str += '\n  base-2: [{}]'.format(
         '|'.join(LABELS_B2[2:]))
     help_str += '\n  base-10: [{}]'.format(
         '|'.join(LABELS_B10[2:]))
-    parser.add_argument('label', help=help_str)
+    parser.add_argument('target_labels', help=help_str, nargs='*')
 
     help_str = 'specify base for ambiguous unit labels'
     help_str += '\n options: [2|10]'
     parser.add_argument('-b', '--base', help=help_str)
+
+    help_str = 'print alternate table (base-2 and base-10 tables)'
+    parser.add_argument('-a', '--alt', help=help_str, action='store_true')
 
     return validate_args(parser.parse_args())
 
@@ -55,14 +62,18 @@ def validate_args(args):
             print(help_str)
             sys.exit(2)
 
-    # Validate specified label exists in the LABEL_MAP
+    # Validate specified labels exist in the LABEL_MAP
     all_labels = []
     all_labels.extend(LABELS_B2)
     all_labels.extend(LABELS_B10)
-    if args.label not in all_labels:
-        help_str = "Invalid label: {0}".format(args.label)
-        print(help_str)
-        sys.exit(2)
+    input_labels = []
+    input_labels.append(args.label)
+    input_labels.extend(args.target_labels)
+    for label in input_labels:
+        if label not in all_labels:
+            help_str = "Invalid label: {0}".format(args.label)
+            print(help_str)
+            sys.exit(2)
 
     # Set input_type for simplified use in later logic
     if args.label in LABELS_B2:
@@ -87,6 +98,75 @@ def validate_args(args):
     return args
 
 
+def format_decimal_value(value):
+    if value > 1:
+        # Format as 3 point decimal for smaller amounts
+        return "{:0.3f}".format(value).rstrip("0").rstrip(".")
+    else:
+        # Format as 15 point decimal for smaller amounts
+        return "{:0.8f}".format(value).rstrip("0").rstrip(".")
+
+
+def format_table(units):
+    """ Print conversion table based on bit_value to console """
+    header = format_table_line('lbl', 'Unit Label', 'Value ({})'.format(
+        units[0].base))
+    divider = format_table_divider(header)
+    content = ''
+    content += '{}\n'.format(divider)
+    content += '{}\n'.format(header)
+    content += '{}\n'.format(divider)
+
+    for unit in units:
+        output_str = format_table_line(
+            unit.label_short,
+            unit.label,
+            format_decimal_value(unit.value))
+        content += '{}\n'.format(output_str)
+    content += '{}\n'.format(divider)
+    return content
+
+
+def format_table_divider(scan_str, match_char='|', i_char='+', fill_char='-'):
+    """ Format and return a divider for use in table printing - check the
+    scan_str for all instances of the match_char, log the positions, generate
+    divider with i_char in match positions, fill_char in non-match positions
+    """
+    i_positions = [idx for idx, s in enumerate(scan_str) if s == match_char]
+    divider = ''
+    for i in range(len(scan_str)):
+        if i in i_positions:
+            divider += i_char
+        else:
+            divider += fill_char
+    return divider
+
+
+def format_table_line(lbl, label, value):
+    return "| {lbl: >5} {label: <12}|{value: >23} |".format(
+        lbl='({})'.format(lbl),
+        label=label,
+        value=value)
+
+
+def generate_unit_list(base_unit, target_labels):
+    units = []
+    if target_labels:
+        for short_label in target_labels:
+            if Unit.is_bit(short_label):
+                new_value = base_unit.bits
+            else:
+                new_value = base_unit.bytes
+            unit = UnitBase2(
+                base_unit.value_to_prefix(
+                    new_value,
+                    short_label[0].lower(),
+                    base_unit.k_divisor),
+                short_label)
+            units.append(unit)
+    return units
+
+
 def main():
     # Parse and validate arguments
     args = parse_args()
@@ -99,4 +179,9 @@ def main():
         # Base 10
         unit = UnitBase10(args.count, args.label)
 
-    print(unit.bits)
+    if args.target_labels:
+        presentation_units = generate_unit_list(unit, args.target_labels)
+    else:
+        presentation_units = generate_unit_list(unit, LABELS_B2)
+
+    print(format_table(presentation_units))
