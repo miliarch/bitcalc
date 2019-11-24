@@ -1,6 +1,6 @@
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
-from .bits import LABEL_MAP, UnitBase2, UnitBase10, Unit
+from .bits import LABEL_MAP, Unit
 
 LABELS_B2 = list(LABEL_MAP['base-2'].keys())
 LABELS_B10 = list(LABEL_MAP['base-10'].keys())
@@ -25,7 +25,7 @@ def parse_args():
     help_str = 'specify short unit label'
     parser.add_argument('label', help=help_str)
 
-    help_str = 'specify target short unit label to convert to'
+    help_str = 'specify target short unit conversion label(s)'
     help_str += '\n\n short unit labels:'
     help_str += '\n  ambiguous: [{}] (handled as base-2 by default)'.format(
         '|'.join(LABELS_B2[:2]))
@@ -39,7 +39,7 @@ def parse_args():
     help_str += '\n options: [2|10]'
     parser.add_argument('-b', '--base', help=help_str)
 
-    help_str = 'print alternate table (base-2 and base-10 tables)'
+    help_str = 'print alternate table (combo base-2 and base-10 values)'
     parser.add_argument('-a', '--alt', help=help_str, action='store_true')
 
     return validate_args(parser.parse_args())
@@ -88,12 +88,6 @@ def validate_args(args):
             usage_str = 'Base specification must be 2 or 10'
             print(usage_str)
             sys.exit(2)
-    else:
-        # Check label, if bit/byte, notify user binary/base-2 will be used
-        if label == 'bit' or label == 'byte':
-            usage_str = ('{0}s specified with no base, using base-2'.format(
-                label.title()))
-            print(usage_str)
 
     return args
 
@@ -107,23 +101,58 @@ def format_decimal_value(value):
         return "{:0.8f}".format(value).rstrip("0").rstrip(".")
 
 
-def format_table(units):
+def format_table(units, units2=None):
     """ Print conversion table based on bit_value to console """
-    header = format_table_line('lbl', 'Unit Label', 'Value ({})'.format(
-        units[0].base))
-    divider = format_table_divider(header)
-    content = ''
-    content += '{}\n'.format(divider)
-    content += '{}\n'.format(header)
-    content += '{}\n'.format(divider)
+    if not units2:
+        # Format table header and add to content string
+        header = format_table_row_single('(lbl)', 'Unit Label', 'Value')
+        divider = format_table_divider(header)
+        content = ''
+        content += '{}\n'.format(divider)
+        content += '{}\n'.format(header)
+        content += '{}\n'.format(divider)
 
-    for unit in units:
-        output_str = format_table_line(
-            unit.label_short,
-            unit.label,
-            format_decimal_value(unit.value))
-        content += '{}\n'.format(output_str)
-    content += '{}\n'.format(divider)
+        # Update content string with each target unit
+        for unit in units:
+            output_str = format_table_row_single(
+                '({})'.format(unit.label_short),
+                '{}s'.format(unit.label.title()),
+                format_decimal_value(unit.value))
+            content += '{}\n'.format(output_str)
+
+        # Append divider to end of table
+        content += '{}\n'.format(divider)
+    else:
+        # Format table header and add to content string
+        header = format_table_row_combo('Value (base-2)', 'Value (base-10)')
+        divider = format_table_divider(header)
+        content = ''
+        content += '{}\n'.format(divider)
+        content += '{}\n'.format(header)
+        content += '{}\n'.format(divider)
+
+        # Identify which set of units is base-2 and save to convenience names
+        if units[0].base == 'base-2':
+            b2_units = units
+            b10_units = units2
+        else:
+            b2_units = units2
+            b10_units = units
+
+        # Add each row of unit conversions to content string
+        for idx, unit in enumerate(b2_units):
+            b2_str = '{v} {ls: <3}'.format(
+                v=format_decimal_value(b2_units[idx].value),
+                ls=b2_units[idx].label_short)
+            b10_str = '{v} {ls: <2}'.format(
+                v=format_decimal_value(b10_units[idx].value),
+                ls=b10_units[idx].label_short)
+            output_str = format_table_row_combo(b2_str, b10_str)
+            content += '{}\n'.format(output_str)
+
+        # Append divider to end of table
+        content += '{}\n'.format(divider)
+
     return content
 
 
@@ -142,11 +171,17 @@ def format_table_divider(scan_str, match_char='|', i_char='+', fill_char='-'):
     return divider
 
 
-def format_table_line(lbl, label, value):
+def format_table_row_single(lbl, label, value):
     return "| {lbl: >5} {label: <12}|{value: >23} |".format(
-        lbl='({})'.format(lbl),
+        lbl=lbl,
         label=label,
         value=value)
+
+
+def format_table_row_combo(value1, value2):
+    return "| {value1: >23} | {value2: >23} |".format(
+        value1=value1,
+        value2=value2)
 
 
 def generate_unit_list(base_unit, target_labels):
@@ -157,11 +192,12 @@ def generate_unit_list(base_unit, target_labels):
                 new_value = base_unit.bits
             else:
                 new_value = base_unit.bytes
-            unit = UnitBase2(
+            k_divisor = Unit.base_to_k_divisor(Unit.label_to_base(short_label))
+            unit = Unit(
                 base_unit.value_to_prefix(
                     new_value,
                     short_label[0].lower(),
-                    base_unit.k_divisor),
+                    k_divisor),
                 short_label)
             units.append(unit)
     return units
@@ -172,16 +208,28 @@ def main():
     args = parse_args()
 
     # Instantiate input unit object
-    if args.base == 2 or (args.base is None and args.label in LABELS_B2):
-        # Base 2
-        unit = UnitBase2(args.count, args.label)
-    else:
-        # Base 10
-        unit = UnitBase10(args.count, args.label)
+    unit = Unit(args.count, args.label, base=args.base)
 
-    if args.target_labels:
-        presentation_units = generate_unit_list(unit, args.target_labels)
-    else:
-        presentation_units = generate_unit_list(unit, LABELS_B2)
+    # Print input data
+    input_value_str = '\nInput value ({base}): {value} {label} ({ls})'.format(
+        base=unit.base,
+        value=format_decimal_value(unit.value),
+        label='{}s'.format(unit.label.title()),
+        ls=unit.label_short)
+    print(input_value_str)
 
-    print(format_table(presentation_units))
+    # Print conversion data
+    if args.target_labels and not args.alt:
+        units = generate_unit_list(unit, args.target_labels)
+        print(format_table(units))
+    else:
+        if args.alt:
+            b2_units = generate_unit_list(unit, LABELS_B2)
+            b10_units = generate_unit_list(unit, LABELS_B10)
+            print(format_table(b2_units, b10_units))
+        elif unit.base == 'base-2':
+            b2_units = generate_unit_list(unit, LABELS_B2)
+            print(format_table(b2_units))
+        elif unit.base == 'base-10':
+            b10_units = generate_unit_list(unit, LABELS_B10)
+            print(format_table(b10_units))
