@@ -1,1 +1,2 @@
-from bitcalc.interface import main
+from bitcalc import bits
+from bitcalc import interface
