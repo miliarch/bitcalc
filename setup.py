@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
 setup(
     name="bitcalc",
-    version="1.2",
+    version="1.3",
     packages=find_packages(),
+    python_requires='>=3',
     install_requires=[],
     author='Marcus Bowman',
     author_email='miliarch.mb@gmail.com',
