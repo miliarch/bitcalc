@@ -1,6 +1,7 @@
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 from .bits import LABEL_MAP, Unit
+from .time import timestamp_to_seconds
 
 LABELS_B2 = list(LABEL_MAP['base-2'].keys())
 LABELS_B10 = list(LABEL_MAP['base-10'].keys())
@@ -48,6 +49,11 @@ def parse_args():
         help=help_str,
         type=int,
         choices=[2, 10])
+
+    # Argument: -d --duration (optional)
+    help_str = 'specify duration for rate conversion (y:w:d:h:m:s)'
+    help_str += '\n format examples: [1:30:20|42|3:12:37:15]\n'
+    parser.add_argument('-d', '--duration', help=help_str)
 
     # Argument: -a --alt (optional, only effective for b/B)
     help_str = 'print alternate table (both base-2 and base-10 units)'
@@ -268,24 +274,52 @@ def main():
         value=format_decimal_value(unit.value),
         label='{}s'.format(unit.label.title()),
         ls=unit.label_short)
-    print(input_value_str)
 
     # Format and print conversion data
     if args.target_labels and not args.alt:
-        # Format and print table with target units based on target labels only
         units = generate_unit_list(unit, args.target_labels)
-        print(format_table(units))
+        if not args.duration:
+            # Format and print table with target units based on target labels only
+            output_str = '{}\n{}'.format(
+                input_value_str,
+                format_table(units))
+            print(output_str)
+        elif args.duration:
+            # Select first listed unit
+            unit = units[0]
+
+            # Process data
+            seconds = timestamp_to_seconds(args.duration)
+            rate = unit.value / seconds
+
+            # Format and print output
+            rate_str = 'Average {label}s per second: {rate} {ls}/s'.format(
+                label=unit.label.title(),
+                rate=format_decimal_value(rate),
+                ls=unit.label_short)
+            output_str = '\n{}'.format(
+                rate_str)
+            print(output_str)
     else:
         if args.alt:
             # Format and print table with all base-2 and base-10 units
             b2_units = generate_unit_list(unit, LABELS_B2)
             b10_units = generate_unit_list(unit, LABELS_B10)
-            print(format_table(b2_units, b10_units))
+            output_str = '{}\n{}'.format(
+                input_value_str,
+                format_table(b2_units, b10_units))
+            print(output_str)
         elif unit.base == 'base-2':
             # Format and print table with all base-2 units
             b2_units = generate_unit_list(unit, LABELS_B2)
-            print(format_table(b2_units))
+            output_str = '{}\n{}'.format(
+                input_value_str,
+                format_table(b2_units))
+            print(output_str)
         elif unit.base == 'base-10':
             # Format and print table with all base-10 units
             b10_units = generate_unit_list(unit, LABELS_B10)
-            print(format_table(b10_units))
+            output_str = '{}\n{}'.format(
+                input_value_str,
+                format_table(b10_units))
+            print(output_str)

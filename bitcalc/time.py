@@ -54,3 +54,16 @@ def reduce_to_seconds(time_units_dict):
         seconds_list.append(
             time_units_dict[key] * UNITS_TO_SECONDS_MULTIPLIER[key])
     return sum(seconds_list)
+
+
+def timestamp_to_seconds(timestamp):
+    """ Process timestamp string to get sum of seconds
+
+    Input:
+        - timestamp: String of colon delimited time values (y:w:d:h:m:s)
+
+    Output: Sum of seconds (int)
+    """
+    time_units = timestamp_to_time_units(timestamp)
+    time_units_dict = time_units_to_dict(time_units)
+    return reduce_to_seconds(time_units_dict)
