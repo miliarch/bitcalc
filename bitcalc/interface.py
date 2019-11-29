@@ -276,6 +276,7 @@ def main():
         ls=unit.label_short)
 
     # Format and print conversion data
+    output_str = ''
     if args.target_labels and not args.alt:
         units = generate_unit_list(unit, args.target_labels)
         if not args.duration:
@@ -283,7 +284,6 @@ def main():
             output_str = '{}\n{}'.format(
                 input_value_str,
                 format_table(units))
-            print(output_str)
         elif args.duration:
             # Select first listed unit
             unit = units[0]
@@ -299,7 +299,6 @@ def main():
                 ls=unit.label_short)
             output_str = '\n{}'.format(
                 rate_str)
-            print(output_str)
     else:
         if args.alt:
             # Format and print table with all base-2 and base-10 units
@@ -308,18 +307,16 @@ def main():
             output_str = '{}\n{}'.format(
                 input_value_str,
                 format_table(b2_units, b10_units))
-            print(output_str)
         elif unit.base == 'base-2':
             # Format and print table with all base-2 units
             b2_units = generate_unit_list(unit, LABELS_B2)
             output_str = '{}\n{}'.format(
                 input_value_str,
                 format_table(b2_units))
-            print(output_str)
         elif unit.base == 'base-10':
             # Format and print table with all base-10 units
             b10_units = generate_unit_list(unit, LABELS_B10)
             output_str = '{}\n{}'.format(
                 input_value_str,
                 format_table(b10_units))
-            print(output_str)
+    print(output_str)
