@@ -1,7 +1,7 @@
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 from .bits import DATA_LABEL_MAP, DataUnit
-from .time import timestamp_to_seconds
+from .time import Duration
 
 LABELS_B2 = list(DATA_LABEL_MAP['base-2'].keys())
 LABELS_B10 = list(DATA_LABEL_MAP['base-10'].keys())
@@ -289,16 +289,19 @@ def main():
             data_unit = data_units[0]
 
             # Process data
-            seconds = timestamp_to_seconds(args.duration)
-            rate = data_unit.value / seconds
+            duration = Duration(timestamp=args.duration)
+            rate = data_unit.value / duration.seconds
 
             # Format and print output
-            rate_str = 'Average {label}s per second: {rate} {ls}/s'.format(
-                label=data_unit.label.title(),
+            input_duration_str = 'Input duration: {}'.format(duration.delta)
+            rate_str = 'Average {lbl}s per second: {rate} {ls}/s'.format(
+                lbl=data_unit.label.title(),
                 rate=format_decimal_value(rate),
                 ls=data_unit.label_short)
-            output_str = '\n{}'.format(
-                rate_str)
+            output_str = '{v}\n{d}\n{r}'.format(
+                v=input_value_str,
+                d=input_duration_str,
+                r=rate_str)
     else:
         if args.alt:
             # Format and print table with all base-2 and base-10 data_units
