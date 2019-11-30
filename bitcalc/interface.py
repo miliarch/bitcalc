@@ -1,10 +1,10 @@
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
-from .bits import LABEL_MAP, Unit
+from .bits import DATA_LABEL_MAP, DataUnit
 from .time import timestamp_to_seconds
 
-LABELS_B2 = list(LABEL_MAP['base-2'].keys())
-LABELS_B10 = list(LABEL_MAP['base-10'].keys())
+LABELS_B2 = list(DATA_LABEL_MAP['base-2'].keys())
+LABELS_B10 = list(DATA_LABEL_MAP['base-10'].keys())
 
 
 def parse_args():
@@ -115,7 +115,7 @@ def format_table(units, units2=None):
     """ Format table content for eventual command line output
 
     Input:
-        - units: List of Unit objects containing values to represent in rows
+        - units: List of DataUnit objects containing values to represent in rows
         - units2: Optional list of units to be used in combination table
                   formatting; length must match len(units)
 
@@ -226,35 +226,35 @@ def format_table_row_combo(value1, value2):
         value2=value2)
 
 
-def generate_unit_list(base_unit, target_labels):
-    """ Generate list of Unit objects based on base_unit against target_labels
+def generate_data_unit_list(base_unit, target_labels):
+    """ Generate list of DataUnit objects based on base_unit against target_labels
 
     Input:
-        - base_unit: Unit object instance representing input/base value
-        - target_labels: Short target labels for building new Unit objects
+        - base_unit: DataUnit object instance representing input/base value
+        - target_labels: Short target labels for building new DataUnit objects
 
-    Output: List of Unit objects
+    Output: List of DataUnit objects
     """
     units = []
     for short_label in target_labels:
         # Identify if target label represents bit or byte value
-        if Unit.is_bit(short_label):
+        if DataUnit.is_bit(short_label):
             new_value = base_unit.bits
         else:
             new_value = base_unit.bytes
 
         # Identify k_divisor based on short_label's base
-        k_divisor = Unit.base_to_k_divisor(Unit.label_to_base(short_label))
+        k_divisor = DataUnit.base_to_k_divisor(DataUnit.label_to_base(short_label))
 
-        # Instantiate Unit object to represent target short_label
-        unit = Unit(
-            Unit.value_to_prefix(
+        # Instantiate DataUnit object to represent target short_label
+        unit = DataUnit(
+            DataUnit.value_to_prefix(
                 new_value,
                 short_label[0].lower(),
                 k_divisor),
             short_label)
 
-        # Append Unit object to list of units
+        # Append DataUnit object to list of units
         units.append(unit)
     return units
 
@@ -265,58 +265,58 @@ def main():
     # Parse and validate arguments
     args = parse_args()
 
-    # Instantiate input Unit object
-    unit = Unit(args.count, args.label, base=args.base)
+    # Instantiate input DataUnit object
+    data_unit = DataUnit(args.count, args.label, base=args.base)
 
-    # Echo information about input unit back to user
+    # Echo information about input data_unit back to user
     input_value_str = '\nInput value ({base}): {value} {label} ({ls})'.format(
-        base=unit.base,
-        value=format_decimal_value(unit.value),
-        label='{}s'.format(unit.label.title()),
-        ls=unit.label_short)
+        base=data_unit.base,
+        value=format_decimal_value(data_unit.value),
+        label='{}s'.format(data_unit.label.title()),
+        ls=data_unit.label_short)
 
     # Format and print conversion data
     output_str = ''
     if args.target_labels and not args.alt:
-        units = generate_unit_list(unit, args.target_labels)
+        data_units = generate_data_unit_list(data_unit, args.target_labels)
         if not args.duration:
-            # Format and print table with target units based on target labels only
+            # Format and print table with target data_units based on target labels only
             output_str = '{}\n{}'.format(
                 input_value_str,
-                format_table(units))
+                format_table(data_units))
         elif args.duration:
-            # Select first listed unit
-            unit = units[0]
+            # Select first listed data_unit
+            data_unit = data_units[0]
 
             # Process data
             seconds = timestamp_to_seconds(args.duration)
-            rate = unit.value / seconds
+            rate = data_unit.value / seconds
 
             # Format and print output
             rate_str = 'Average {label}s per second: {rate} {ls}/s'.format(
-                label=unit.label.title(),
+                label=data_unit.label.title(),
                 rate=format_decimal_value(rate),
-                ls=unit.label_short)
+                ls=data_unit.label_short)
             output_str = '\n{}'.format(
                 rate_str)
     else:
         if args.alt:
-            # Format and print table with all base-2 and base-10 units
-            b2_units = generate_unit_list(unit, LABELS_B2)
-            b10_units = generate_unit_list(unit, LABELS_B10)
+            # Format and print table with all base-2 and base-10 data_units
+            b2_data_units = generate_data_unit_list(data_unit, LABELS_B2)
+            b10_data_units = generate_data_unit_list(data_unit, LABELS_B10)
             output_str = '{}\n{}'.format(
                 input_value_str,
-                format_table(b2_units, b10_units))
-        elif unit.base == 'base-2':
-            # Format and print table with all base-2 units
-            b2_units = generate_unit_list(unit, LABELS_B2)
+                format_table(b2_data_units, b10_data_units))
+        elif data_unit.base == 'base-2':
+            # Format and print table with all base-2 data_units
+            b2_data_units = generate_data_unit_list(data_unit, LABELS_B2)
             output_str = '{}\n{}'.format(
                 input_value_str,
-                format_table(b2_units))
-        elif unit.base == 'base-10':
-            # Format and print table with all base-10 units
-            b10_units = generate_unit_list(unit, LABELS_B10)
+                format_table(b2_data_units))
+        elif data_unit.base == 'base-10':
+            # Format and print table with all base-10 data_units
+            b10_data_units = generate_data_unit_list(data_unit, LABELS_B10)
             output_str = '{}\n{}'.format(
                 input_value_str,
-                format_table(b10_units))
+                format_table(b10_data_units))
     print(output_str)

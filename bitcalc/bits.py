@@ -1,5 +1,5 @@
 # Label mappings
-LABEL_MAP = {
+DATA_LABEL_MAP = {
     'base-2': {
         'b': 'bit',
         'B': 'byte',
@@ -40,7 +40,7 @@ PREFIX_TO_POWER = {
 }
 
 
-class Unit:
+class DataUnit:
     """ Parent class for units """
     value = float()
     label = str()
@@ -51,7 +51,7 @@ class Unit:
     def __init__(self, value, label_short, base=None):
         self.base = self.label_to_base(label_short, base=base)
         self.value = value
-        self.label = LABEL_MAP[self.base][label_short]
+        self.label = DATA_LABEL_MAP[self.base][label_short]
         self.label_short = label_short
         self.k_divisor = self.base_to_k_divisor(self.base)
         self.prefix = self._get_prefix(self.label)
@@ -66,14 +66,14 @@ class Unit:
             return self.value
         elif self.prefix is None and not self.is_bit:
             # Value is bytes, convert to bits and return
-            return Unit.bytes_to_bits(self.value)
+            return DataUnit.bytes_to_bits(self.value)
         elif not self.is_bit:
             # Value is bytes, but not plain; convert to bits for processing
-            value = Unit.bytes_to_bits(self.value)
+            value = DataUnit.bytes_to_bits(self.value)
         else:
             # value is bits, but not plain; save for processing
             value = self.value
-        return Unit.prefix_to_value(value, self.prefix, self.k_divisor)
+        return DataUnit.prefix_to_value(value, self.prefix, self.k_divisor)
 
     @staticmethod
     def _get_prefix(label):
@@ -117,9 +117,9 @@ class Unit:
                 return 'base-10'
 
         # Value isn't b/B, or base wasn't specified; normal logic
-        if label_short in LABEL_MAP['base-2']:
+        if label_short in DATA_LABEL_MAP['base-2']:
             return 'base-2'
-        elif label_short in LABEL_MAP['base-10']:
+        elif label_short in DATA_LABEL_MAP['base-10']:
             return 'base-10'
 
     @staticmethod
