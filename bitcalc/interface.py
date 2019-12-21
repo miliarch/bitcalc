@@ -1,7 +1,6 @@
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
-from .bits import DATA_LABEL_MAP, DataUnit
-from .time import Duration
+from .bits import DATA_LABEL_MAP, DataUnit, DataRate
 
 LABELS_B2 = list(DATA_LABEL_MAP['base-2'].keys())
 LABELS_B10 = list(DATA_LABEL_MAP['base-10'].keys())
@@ -51,9 +50,15 @@ def parse_args():
         choices=[2, 10])
 
     # Argument: -d --duration (optional)
-    help_str = 'specify duration for rate conversion (y:w:d:h:m:s)'
-    help_str += '\n format examples: [1:30:20|42|3:12:37:15]\n'
+    help_str = 'specify duration for conversion to rate (y:w:d:h:m:s)'
+    help_str += '\n format examples: [1:30:20|42|3:12:37:15]'
+    help_str += '\n requires: target_labels specified (first used)'
     parser.add_argument('-d', '--duration', help=help_str)
+
+    # Argument: -r --rate (optional)
+    help_str = 'specify rate for conversion to duration (e.g.: 10/s)'
+    help_str += '\n requires: target_labels specified (first used)'
+    parser.add_argument('-r', '--rate', help=help_str)
 
     # Argument: -a --alt (optional, only effective for b/B)
     help_str = 'print alternate table (both base-2 and base-10 units)'
@@ -244,7 +249,8 @@ def generate_data_unit_list(base_unit, target_labels):
             new_value = base_unit.bytes
 
         # Identify k_divisor based on short_label's base
-        k_divisor = DataUnit.base_to_k_divisor(DataUnit.label_to_base(short_label))
+        k_divisor = DataUnit.base_to_k_divisor(
+            DataUnit.label_to_base(short_label))
 
         # Instantiate DataUnit object to represent target short_label
         unit = DataUnit(
@@ -259,6 +265,31 @@ def generate_data_unit_list(base_unit, target_labels):
     return units
 
 
+def format_duration(data_rate):
+    """ Format duration string for given data_rate
+
+    Input:
+        - data_rate: DataRate object
+
+    Output: String to be used when presenting duration
+    """
+    return'Duration: {}'.format(data_rate.duration.delta)
+
+
+def format_data_rate(data_rate):
+    """ Format data rate string for given data_rate
+
+    Input:
+        - data_rate: DataRate object
+
+    Output: String to be used when presenting data rate
+    """
+    return 'Data rate: {rate} {ls}/{tls}'.format(
+        rate=format_decimal_value(data_rate.rate),
+        ls=data_rate.label_short,
+        tls=data_rate.time_label[0])
+
+
 def main():
     """ Main entry point for command line invocation """
 
@@ -266,60 +297,86 @@ def main():
     args = parse_args()
 
     # Instantiate input DataUnit object
-    data_unit = DataUnit(args.count, args.label, base=args.base)
+    base_unit = DataUnit(args.count, args.label, base=args.base)
 
-    # Echo information about input data_unit back to user
-    input_value_str = '\nInput value ({base}): {value} {label} ({ls})'.format(
-        base=data_unit.base,
-        value=format_decimal_value(data_unit.value),
-        label='{}s'.format(data_unit.label.title()),
-        ls=data_unit.label_short)
+    # Format information about input base_unit for eventual output
+    input_value_str = '\nValue: {value} {label} ({ls})'.format(
+        base=base_unit.base,
+        value=format_decimal_value(base_unit.value),
+        label='{}s'.format(base_unit.label.title()),
+        ls=base_unit.label_short)
 
-    # Format and print conversion data
+    # Format output string for eventual printing to console
     output_str = ''
     if args.target_labels and not args.alt:
-        data_units = generate_data_unit_list(data_unit, args.target_labels)
-        if not args.duration:
-            # Format and print table with target data_units based on target labels only
+        # Conditional handling when target_labels are present
+        target_units = generate_data_unit_list(
+            base_unit,
+            args.target_labels)
+
+        if not args.duration and not args.rate:
+            # Format conversion table with all target DataUnits
             output_str = '{}\n{}'.format(
                 input_value_str,
-                format_table(data_units))
+                format_table(target_units))
         elif args.duration:
-            # Select first listed data_unit
-            data_unit = data_units[0]
+            # Format duration and rate detail for input duration
+            # Instantiate DataRate object from first target_unit
+            target_rate = DataRate(target_units[0], timestamp=args.duration)
 
-            # Process data
-            duration = Duration(timestamp=args.duration)
-            rate = data_unit.value / duration.seconds
-
-            # Format and print output
-            input_duration_str = 'Input duration: {}'.format(duration.delta)
-            rate_str = 'Average {lbl}s per second: {rate} {ls}/s'.format(
-                lbl=data_unit.label.title(),
-                rate=format_decimal_value(rate),
-                ls=data_unit.label_short)
-            output_str = '{v}\n{d}\n{r}'.format(
+            # Format output_str
+            output_str = '{v}\n{d}\n{r}\n'.format(
                 v=input_value_str,
-                d=input_duration_str,
-                r=rate_str)
+                d=format_duration(target_rate),
+                r=format_data_rate(target_rate))
+        elif args.rate:
+            # Format duration and rate detail for input rate
+            rate_str = args.rate
+
+            # Configure rate detail
+            if '/' in rate_str:
+                # Split rate value and short time label (e.g.: R/L)
+                # Convert rate string to float
+                rate_value = float(rate_str[:rate_str.find('/')])
+
+                # Capture short time label
+                short_time_label = rate_str[rate_str.find('/') + 1]
+
+                # Instantiate DataRate object from first target_unit
+                target_rate = DataRate(
+                    target_units[0],
+                    rate=rate_value,
+                    time_label_short=short_time_label)
+            else:
+                # Convert rate string to float
+                rate_value = float(rate_str)
+
+                # Instantiate DataRate object from first target_unit
+                target_rate = DataRate(target_units[0], rate=rate_value)
+
+            # Format output_str
+            output_str = '{v}\n{d}\n{r}\n'.format(
+                v=input_value_str,
+                d=format_duration(target_rate),
+                r=format_data_rate(target_rate))
     else:
         if args.alt:
-            # Format and print table with all base-2 and base-10 data_units
-            b2_data_units = generate_data_unit_list(data_unit, LABELS_B2)
-            b10_data_units = generate_data_unit_list(data_unit, LABELS_B10)
+            # Format output_str with all base-2 and base-10 DataUnits
+            b2_units = generate_data_unit_list(base_unit, LABELS_B2)
+            b10_units = generate_data_unit_list(base_unit, LABELS_B10)
             output_str = '{}\n{}'.format(
                 input_value_str,
-                format_table(b2_data_units, b10_data_units))
-        elif data_unit.base == 'base-2':
-            # Format and print table with all base-2 data_units
-            b2_data_units = generate_data_unit_list(data_unit, LABELS_B2)
+                format_table(b2_units, b10_units))
+        elif base_unit.base == 'base-2':
+            # Format output_str with all base-2 DataUnits
+            b2_units = generate_data_unit_list(base_unit, LABELS_B2)
             output_str = '{}\n{}'.format(
                 input_value_str,
-                format_table(b2_data_units))
-        elif data_unit.base == 'base-10':
-            # Format and print table with all base-10 data_units
-            b10_data_units = generate_data_unit_list(data_unit, LABELS_B10)
+                format_table(b2_units))
+        elif base_unit.base == 'base-10':
+            # Format output_str with all base-10 DataUnits
+            b10_units = generate_data_unit_list(base_unit, LABELS_B10)
             output_str = '{}\n{}'.format(
                 input_value_str,
-                format_table(b10_data_units))
+                format_table(b10_units))
     print(output_str)

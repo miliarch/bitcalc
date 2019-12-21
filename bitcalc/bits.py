@@ -1,3 +1,6 @@
+from datetime import timedelta
+from .time import Duration, scale_rate_to_seconds, SHORT_TO_LONG_TIME_LABELS
+
 # Label mappings
 DATA_LABEL_MAP = {
     'base-2': {
@@ -41,7 +44,7 @@ PREFIX_TO_POWER = {
 
 
 class DataUnit:
-    """ Parent class for units """
+    """ Parent class for data units """
     value = float()
     label = str()
     label_short = str()
@@ -125,3 +128,21 @@ class DataUnit:
     @staticmethod
     def base_to_k_divisor(base):
         return 2**10 if base == 'base-2' else 10**3
+
+
+class DataRate(DataUnit):
+    """ Representation of data rate """
+    def __init__(self, unit, rate=None, timestamp=None, time_label_short='s'):
+        super().__init__(unit.value, unit.label_short, base=unit.base)
+        self.time_label = SHORT_TO_LONG_TIME_LABELS[time_label_short]
+        self.time_label_short = time_label_short
+        if rate:
+            rate_seconds = scale_rate_to_seconds(
+                rate,
+                self.time_label_short)
+            seconds = self.value / rate_seconds
+            delta = timedelta(seconds=seconds)
+            self.duration = Duration(delta=delta)
+        elif timestamp:
+            self.duration = Duration(timestamp=timestamp)
+        self.rate = self.value / getattr(self.duration, self.time_label)

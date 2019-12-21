@@ -10,11 +10,25 @@ TIME_UNITS_TO_SECONDS = OrderedDict([
     ('years', 52 * 7 * 24 * 60**2)
 ])
 
+SHORT_TO_LONG_TIME_LABELS = {
+    's': 'seconds',
+    'm': 'minutes',
+    'h': 'hours',
+    'd': 'days',
+    'w': 'weeks',
+    'y': 'years'
+}
+
+
+def scale_rate_to_seconds(rate_value, time_label_short):
+    time_label_long = SHORT_TO_LONG_TIME_LABELS[time_label_short]
+    return rate_value / TIME_UNITS_TO_SECONDS[time_label_long]
+
 
 class Duration:
     def __init__(self, timestamp=None, delta=None):
         if delta:
-            timestamp = '{d}:0:0:{s}'.format(d=delta.days, s=delta.seconds)
+            timestamp = self.delta_to_timestamp(delta)
 
         self.seconds = self.timestamp_to_seconds(timestamp)
         self.minutes = self.seconds / TIME_UNITS_TO_SECONDS['minutes']
@@ -82,3 +96,7 @@ class Duration:
         units_list = Duration.timestamp_to_units_list(timestamp)
         units_dict = Duration.units_to_dict(units_list)
         return Duration.units_to_seconds(units_dict)
+
+    @staticmethod
+    def delta_to_timestamp(delta):
+        return '{d}:0:0:{s}'.format(d=delta.days, s=delta.seconds)
