@@ -1,7 +1,7 @@
 # Bitcalc
 
 ## Description
-    A command line utility and module for quick conversion and comparison of bit/byte values
+A command line utility and module for quick conversion and comparison of bit/byte values
 
 ## Installation
 You can easily install bitcalc into your Python 3+ environment's site-packages with pip:
@@ -17,7 +17,7 @@ If you'd rather not use pip to install bitcalc, you can simply clone this reposi
 
 ## Help
 ```
-usage: bitcalc [-h] [-b {2,10}] [-a] count label [target_labels [target_labels ...]]
+usage: bitcalc [-h] [-b {2,10}] [-d DURATION] [-r RATE] [-a] count label [target_labels [target_labels ...]]
 
 Bitcalc - A command line utility for quick conversion and comparison of bit/byte values
 
@@ -35,6 +35,12 @@ optional arguments:
   -h, --help            show this help message and exit
   -b {2,10}, --base {2,10}
                         specify base for ambiguous unit labels
+  -d DURATION, --duration DURATION
+                        specify duration for conversion to rate (y:w:d:h:m:s)
+                         format examples: [1:30:20|42|3:12:37:15]
+                         requires: target_labels specified (first used)
+  -r RATE, --rate RATE  specify rate for conversion to duration (e.g.: 10/s)
+                         requires: target_labels specified (first used)
   -a, --alt             print alternate table (both base-2 and base-10 units)
 ```
 
@@ -95,11 +101,27 @@ Input value (base-2): 5 Gibibytes (GiB)
 +-------------------------+-------------------------+
 ```
 
+**$ bitcalc 5 GiB MiB --duration 10:35**
+```
+Value: 5 Gibibytes (GiB)
+Duration: 0:10:35
+Data rate: 8.063 MiB/s
+```
+
+**$ bitcalc 5 TiB MiB --rate 37/s**
+```
+Value: 5 Tebibytes (TiB)
+Duration: 1 day, 15:21:39
+Data rate: 37 MiB/s
+```
+
 ## Version History / Change Log
 
-* 11/23/2019 - v1.2 - Name simplification and re-write; support of targeted conversion and output of combo value output (base-2 and base-10); introduction of setup.py for pip installation and modular import
-* 02/16/2019 - v1.1 - Refactoring and general improvements
-* 09/14/2016 - v1.0 - First functional release
+* 2019-12-21 - v1.4 - Implemented data rate and duration handling (does not yet account for overhead)
+* 2019-11-23 - v1.3 - Pinned to Python 3+
+* 2019-11-23 - v1.2 - Name simplification and re-write; support of targeted conversion and output of combo value output (base-2 and base-10); introduction of setup.py for pip installation and modular import
+* 2019-02-16 - v1.1 - Refactoring and general improvements
+* 2016-09-14 - v1.0 - First functional release
 
 ## About
 This is a little project that's been in the works for a while. Frequently dealing with storage/filesystem management, I found that I'd often need to convert between different bit and byte values. Most of the time, I'd just head over to [Matisse's Bit Calculator](http://www.matisse.net/bitcalc/), as it suited my needs perfectly. Over time this became a bit cumbersome, and I sought to find a locally executable equivalent. **I didn't find one, so I built one!**
