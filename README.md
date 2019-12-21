@@ -49,7 +49,7 @@ For more information about IEC and SI notation, see [Ubuntu Units Policy](https:
 ## Usage and Output Examples
 **$ bitcalc 5 GiB B KiB MiB**
 ```
-Input value (base-2): 5 Gibibytes (GiB)
+Value: 5 Gibibytes (GiB)
 +-------------------+------------------------+
 | (lbl) Unit Label  |                  Value |
 +-------------------+------------------------+
@@ -61,7 +61,7 @@ Input value (base-2): 5 Gibibytes (GiB)
 
 **$ bitcalc 5 GiB**
 ```
-Input value (base-2): 5 Gibibytes (GiB)
+Value: 5 Gibibytes (GiB)
 +-------------------+------------------------+
 | (lbl) Unit Label  |                  Value |
 +-------------------+------------------------+
@@ -82,7 +82,7 @@ Input value (base-2): 5 Gibibytes (GiB)
 
 **$ bitcalc 5 GiB --alt**
 ```
-Input value (base-2): 5 Gibibytes (GiB)
+Value: 5 Gibibytes (GiB)
 +-------------------------+-------------------------+
 |          Value (base-2) |         Value (base-10) |
 +-------------------------+-------------------------+
