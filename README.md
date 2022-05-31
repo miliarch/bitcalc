@@ -4,7 +4,12 @@
 A command line utility and module for quick conversion and comparison of bit/byte values
 
 ## Installation
-You can easily install bitcalc into your Python 3+ environment's site-packages with pip:
+You can easily install bitcalc into your Python 3+ environment's site-packages from PyPi with pip:
+```
+pip install git+https://github.com/miliarch/bitcalc.git
+```
+
+Or to install the latest version of the repository with pip:
 ```
 pip install git+https://github.com/miliarch/bitcalc.git
 ```

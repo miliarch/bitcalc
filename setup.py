@@ -4,7 +4,7 @@ BASE_DIR = Path(__file__).parent
 long_description = (BASE_DIR / "README.md").read_text()
 setup(
     name="bitcalc",
-    version="1.5",
+    version="1.6",
     packages=find_packages(),
     python_requires='>=3',
     install_requires=[],
