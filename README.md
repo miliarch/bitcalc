@@ -6,10 +6,10 @@ A command line utility and module for quick conversion and comparison of bit/byt
 ## Installation
 You can easily install bitcalc into your Python 3+ environment's site-packages from PyPi with pip:
 ```
-pip install git+https://github.com/miliarch/bitcalc.git
+pip install bitcalc
 ```
 
-Or to install the latest version of the repository with pip:
+Or install the latest version of the repository with pip:
 ```
 pip install git+https://github.com/miliarch/bitcalc.git
 ```
